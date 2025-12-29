@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Mobile (Expo)" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/apps/mobile/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="dev" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="EXPO_PUBLIC_ENV" value="development" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Worker" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/apps/worker/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="dev" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="NODE_ENV" value="development" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

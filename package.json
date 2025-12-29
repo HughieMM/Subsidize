@@ -1,0 +1,27 @@
+{
+  "name": "subsidize",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bermuda grocery price comparison and delivery platform",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "mobile": "pnpm --filter @subsidize/mobile dev",
+    "api": "pnpm --filter @subsidize/api dev",
+    "worker": "pnpm --filter @subsidize/worker dev",
+    "web": "pnpm --filter @subsidize/web dev"
+  },
+  "devDependencies": {
+    "prettier": "^3.1.1",
+    "turbo": "^1.11.3",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
