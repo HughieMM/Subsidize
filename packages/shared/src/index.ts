@@ -10,6 +10,9 @@ export * from './api';
 // Hooks
 export * from './hooks';
 
+// Adapters
+export * from './adapters';
+
 // Utilities
 export * from './utils/currency';
 export * from './utils/date';
