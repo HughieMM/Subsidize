@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import { tailwindTheme } from '@subsidize/ui';
 
 const config: Config = {
   content: [
@@ -8,10 +9,7 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        primary: '#007AFF',
-        secondary: '#5856D6',
-      },
+      ...tailwindTheme,
     },
   },
   plugins: [],

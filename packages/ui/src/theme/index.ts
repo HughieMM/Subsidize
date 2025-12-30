@@ -15,3 +15,6 @@ export const theme = {
 } as const;
 
 export type Theme = typeof theme;
+
+// Web-compatible exports
+export { cssVariables, tailwindTheme } from './webExport';
