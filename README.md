@@ -90,14 +90,42 @@ This project is a **Turborepo monorepo** containing:
 
 ### Prerequisites
 
-- Node.js 18+ (via nvm recommended)
-- pnpm 8+
-- PostgreSQL 15+
-- Redis 7+
-- Xcode (macOS, for iOS development)
-- Watchman (macOS, for React Native)
+- **Node.js 18+** (via nvm recommended)
+- **pnpm 8+**
+- **PostgreSQL 15+** or Docker
+- **Redis 7+** or Docker
+- **Xcode** (macOS, for iOS development)
+- **Watchman** (macOS, for React Native)
 
-### Installation
+### Automated Setup (Recommended)
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd Subsidize
+
+# Run health check to verify prerequisites
+make health-check
+
+# Automated first-time setup (installs deps, creates .env files, builds packages)
+make setup
+
+# Start PostgreSQL + Redis with Docker (if not installed locally)
+make docker-up
+
+# Setup database (run migrations + seed data)
+make db-setup
+
+# Start development
+make dev
+```
+
+Visit:
+- **Web App**: http://localhost:3000
+- **API**: http://localhost:4000
+- **API Docs**: http://localhost:4000/api-docs
+
+### Manual Setup
 
 ```bash
 # Clone the repository
@@ -112,31 +140,73 @@ pnpm --filter @subsidize/shared build
 pnpm --filter @subsidize/ui build
 
 # Set up environment variables
-cp apps/api/.env.example apps/api/.env
-cp apps/worker/.env.example apps/worker/.env
-cp apps/web/.env.example apps/web/.env
+cp services/api/.env.example services/api/.env
+cp services/worker/.env.example services/worker/.env
+cp apps/web/.env.local.example apps/web/.env.local
 cp apps/mobile/.env.example apps/mobile/.env
 
 # Edit .env files with your configuration
+
+# Setup database
+cd services/api
+pnpm prisma generate
+pnpm prisma migrate dev
+pnpm prisma db seed
+cd ../..
 ```
 
 ### Development
 
 ```bash
-# Run all apps in parallel
-pnpm dev
+# Using Make (recommended)
+make dev              # Run all apps in parallel
+make dev-web          # Web app only
+make dev-api          # API server only
+make dev-worker       # Worker only
+make dev-mobile       # Mobile app (Expo)
+make dev-ios          # iOS Simulator
+make dev-android      # Android Emulator
 
-# Or run individual apps
-pnpm dev:api      # API server (http://localhost:3001)
-pnpm dev:web      # Web app (http://localhost:3000)
-pnpm dev:mobile   # Mobile app (Expo)
-pnpm dev:worker   # Background worker
+# Or using pnpm directly
+pnpm dev              # Run all apps in parallel
+pnpm dev:api          # API server (http://localhost:4000)
+pnpm dev:web          # Web app (http://localhost:3000)
+pnpm dev:mobile       # Mobile app (Expo)
+pnpm dev:worker       # Background worker
+pnpm dev:ios          # iOS Simulator
+pnpm dev:android      # Android Emulator
+```
+
+### Database Management
+
+```bash
+make db-studio        # Open Prisma Studio (GUI)
+make db-migrate       # Run migrations
+make db-reset         # Reset database (WARNING: deletes all data)
+```
+
+### Docker Commands
+
+```bash
+make docker-up        # Start PostgreSQL + Redis containers
+make docker-down      # Stop containers
+```
+
+### Code Quality
+
+```bash
+make format           # Format code with Prettier
+make lint             # Run ESLint
+make type-check       # Run TypeScript checks
+make test             # Run tests
 ```
 
 ### Building
 
 ```bash
 # Build all apps
+make build
+# or
 pnpm build
 
 # Build specific apps
@@ -150,24 +220,30 @@ pnpm build:mobile
 ```
 Subsidize/
 ├── apps/
-│   ├── mobile/       # Expo React Native app
-│   └── web/          # Next.js web app
+│   ├── mobile/              # Expo React Native app
+│   └── web/                 # Next.js web app
 ├── services/
-│   ├── api/          # Express REST API
-│   └── worker/       # Background job processor
+│   ├── api/                 # Express REST API
+│   └── worker/              # Background job processor
 ├── packages/
-│   ├── config/       # Shared configs (TS, ESLint)
-│   ├── shared/       # Shared types and utilities
-│   └── ui/           # Shared UI components
+│   ├── config/              # Shared configs (TS, ESLint)
+│   ├── shared/              # Shared types and utilities
+│   └── ui/                  # Shared UI components
+├── scripts/
+│   ├── setup.sh             # Automated first-time setup
+│   └── health-check.sh      # Prerequisites verification
 ├── .github/
-│   └── workflows/    # GitHub Actions CI/CD
+│   └── workflows/           # GitHub Actions CI/CD
 ├── .gitignore
-├── DEVELOPER_SETUP.md
-├── package.json
+├── DATA_SOURCES_AND_COMPLIANCE.md  # Compliance documentation
+├── DEVELOPER_SETUP.md       # Developer setup guide
+├── docker-compose.yml       # Docker services (PostgreSQL, Redis)
+├── Makefile                 # Convenient development commands
+├── package.json             # Root package configuration
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
 ├── README.md
-└── turbo.json
+└── turbo.json               # Turborepo configuration
 ```
 
 ## Environment Variables
@@ -183,16 +259,66 @@ Each app requires specific environment variables. See the `.env.example` files i
 
 ## Available Scripts
 
+### Using Make (Recommended)
+
+The project includes a **Makefile** for convenient development:
+
+```bash
+make help             # Show all available commands
+make install          # Install dependencies
+make setup            # First-time setup
+make health-check     # Verify prerequisites
+
+make dev              # Run full stack
+make dev-web          # Web app only
+make dev-api          # API server only
+make dev-worker       # Worker only
+make dev-mobile       # Mobile (Expo)
+make dev-ios          # iOS Simulator
+make dev-android      # Android Emulator
+
+make db-setup         # Setup database
+make db-migrate       # Run migrations
+make db-studio        # Open Prisma Studio
+make db-reset         # Reset database
+
+make docker-up        # Start Docker containers
+make docker-down      # Stop Docker containers
+
+make format           # Format code
+make lint             # Run linter
+make type-check       # Type check
+make test             # Run tests
+make build            # Build all apps
+make clean            # Clean artifacts
+```
+
+### Using pnpm Directly
+
 From the root directory:
 
 ```bash
 pnpm dev              # Run all apps in development mode
+pnpm dev:web          # Web app
+pnpm dev:api          # API server
+pnpm dev:worker       # Worker service
+pnpm dev:mobile       # Mobile (Expo)
+pnpm dev:ios          # iOS Simulator
+pnpm dev:android      # Android Emulator
+
 pnpm build            # Build all apps
 pnpm lint             # Lint all apps
 pnpm type-check       # Type check all apps
 pnpm test             # Run all tests
 pnpm format           # Format code with Prettier
 pnpm clean            # Clean build artifacts
+```
+
+### Helper Scripts
+
+```bash
+./scripts/setup.sh        # Automated first-time setup
+./scripts/health-check.sh # Verify prerequisites
 ```
 
 ## CI/CD
