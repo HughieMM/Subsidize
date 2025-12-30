@@ -14,6 +14,8 @@
     "dev:web": "turbo run dev --filter=web",
     "dev:api": "turbo run dev --filter=api",
     "dev:worker": "turbo run dev --filter=worker",
+    "dev:ios": "pnpm --filter=mobile ios",
+    "dev:android": "pnpm --filter=mobile android",
     "build": "turbo run build",
     "build:mobile": "turbo run build --filter=mobile",
     "build:web": "turbo run build --filter=web",
