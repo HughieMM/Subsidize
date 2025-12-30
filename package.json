@@ -20,6 +20,7 @@
     "build:api": "turbo run build --filter=api",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
+    "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
@@ -30,6 +31,7 @@
   },
   "workspaces": [
     "apps/*",
+    "services/*",
     "packages/*"
   ]
 }
