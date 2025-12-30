@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 /**
  * Process ingestion job
  * Fetches data from store adapter and persists to database
+ * Logs all runs to IngestionRun table for compliance auditing
  */
 export async function processIngestion(
   job: Job<IngestionJobData>
@@ -20,17 +21,40 @@ export async function processIngestion(
     `Processing ingestion for ${storeName} (type: ${type}, job: ${job.id})`
   );
 
-  // Update job progress
-  await job.updateProgress(10);
-
   // Get adapter for store
   const adapter = adapterRegistry.get(storeId);
   if (!adapter) {
     throw new Error(`No adapter found for store ${storeId}`);
   }
 
+  // Extract domain from adapter config
+  const domain = adapter.config.baseUrl
+    ? new URL(adapter.config.baseUrl).hostname
+    : storeId;
+
+  // Create audit log entry
+  const auditLog = await prisma.ingestionRun.create({
+    data: {
+      storeId,
+      storeName,
+      domain,
+      status: 'running',
+      ingestType: type,
+      requestCount: 0,
+      successCount: 0,
+      errorCount: 0,
+      productsIngested: 0,
+      rateLimitHits: 0,
+    },
+  });
+
+  // Update job progress
+  await job.updateProgress(10);
+
   let productsIngested = 0;
   let errorsEncountered = 0;
+  let requestCount = 0;
+  let successCount = 0;
 
   try {
     await job.updateProgress(20);
@@ -43,11 +67,15 @@ export async function processIngestion(
       case 'full':
         console.log(`Fetching full product catalog for ${storeName}...`);
         products = await adapter.listProducts({ limit: 1000 });
+        requestCount++;
+        successCount++;
         break;
 
       case 'specials':
         console.log(`Fetching weekly specials for ${storeName}...`);
         specials = await adapter.fetchWeeklySpecials();
+        requestCount++;
+        successCount++;
         // Convert specials to products
         products = specials.map((s) => ({
           sku: s.sku,
@@ -66,6 +94,8 @@ export async function processIngestion(
         );
         if (productSkus && productSkus.length > 0) {
           products = await adapter.fetchPricesFor(productSkus);
+          requestCount += productSkus.length;
+          successCount += products.length;
         }
         break;
     }
@@ -79,6 +109,22 @@ export async function processIngestion(
 
     await job.updateProgress(90);
 
+    // Update audit log with success
+    const duration = Date.now() - startTime;
+    await prisma.ingestionRun.update({
+      where: { id: auditLog.id },
+      data: {
+        status: 'completed',
+        completedAt: new Date(),
+        durationMs: duration,
+        requestCount,
+        successCount,
+        errorCount: errorsEncountered,
+        productsIngested,
+        rateLimitHits: adapter.getMetrics()?.rateLimitHits || 0,
+      },
+    });
+
     console.log(
       `Ingestion complete for ${storeName}: ${productsIngested} products ingested`
     );
@@ -86,8 +132,22 @@ export async function processIngestion(
     console.error(`Error during ingestion for ${storeName}:`, error);
     errorsEncountered++;
 
-    // Log error to database
-    await logIngestionError(storeId, error as Error);
+    // Update audit log with failure
+    const duration = Date.now() - startTime;
+    await prisma.ingestionRun.update({
+      where: { id: auditLog.id },
+      data: {
+        status: 'failed',
+        completedAt: new Date(),
+        durationMs: duration,
+        requestCount,
+        successCount,
+        errorCount: errorsEncountered,
+        productsIngested,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        rateLimitHits: adapter.getMetrics()?.rateLimitHits || 0,
+      },
+    });
   }
 
   await job.updateProgress(100);

@@ -142,3 +142,41 @@ model DeliveryOrder {
   @@index([status])
   @@index([createdAt])
 }
+
+model IngestionRun {
+  id                String   @id @default(cuid())
+  storeId           String
+  storeName         String
+  domain            String // Domain that was scraped
+  startedAt         DateTime @default(now())
+  completedAt       DateTime?
+  durationMs        Int? // Duration in milliseconds
+  status            String // running, completed, failed, cancelled
+  ingestType        String // full, specials, prices
+  requestCount      Int      @default(0) // Number of HTTP requests made
+  successCount      Int      @default(0) // Successful requests
+  errorCount        Int      @default(0) // Failed requests
+  productsIngested  Int      @default(0) // Number of products successfully ingested
+  rateLimitHits     Int      @default(0) // Number of times rate limit was hit
+  errorMessage      String?  @db.Text // Error details if failed
+  metadata          String?  @db.Text // JSON metadata about the run
+  createdAt         DateTime @default(now())
+
+  @@index([storeId])
+  @@index([domain])
+  @@index([status])
+  @@index([startedAt])
+  @@index([createdAt])
+}
+
+model RateLimitLog {
+  id        String   @id @default(cuid())
+  domain    String
+  timestamp DateTime @default(now())
+  blocked   Boolean  @default(false) // Was request blocked?
+  tokens    Float // Tokens remaining
+  createdAt DateTime @default(now())
+
+  @@index([domain])
+  @@index([timestamp])
+}
