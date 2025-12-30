@@ -25,13 +25,15 @@ This project is a **Turborepo monorepo** containing:
   - Same features as mobile app
   - Optimized for desktop browsing
 
-- **`apps/api`** - Express REST API
+### Services
+
+- **`services/api`** - Express REST API
   - Product and price data management
   - Store information
   - User management
   - Order processing
 
-- **`apps/worker`** - Background job processor
+- **`services/worker`** - Background job processor
   - Price scraping from store websites
   - Data aggregation and updates
   - Scheduled tasks using BullMQ
@@ -148,14 +150,17 @@ pnpm build:mobile
 ```
 Subsidize/
 ├── apps/
-│   ├── api/          # Express REST API
 │   ├── mobile/       # Expo React Native app
-│   ├── web/          # Next.js web app
+│   └── web/          # Next.js web app
+├── services/
+│   ├── api/          # Express REST API
 │   └── worker/       # Background job processor
 ├── packages/
 │   ├── config/       # Shared configs (TS, ESLint)
 │   ├── shared/       # Shared types and utilities
 │   └── ui/           # Shared UI components
+├── .github/
+│   └── workflows/    # GitHub Actions CI/CD
 ├── .gitignore
 ├── DEVELOPER_SETUP.md
 ├── package.json
@@ -167,10 +172,10 @@ Subsidize/
 
 ## Environment Variables
 
-Each app requires specific environment variables. See the `.env.example` files in each app directory:
+Each app requires specific environment variables. See the `.env.example` files in each directory:
 
-- `apps/api/.env.example` - API server configuration
-- `apps/worker/.env.example` - Worker configuration
+- `services/api/.env.example` - API server configuration
+- `services/worker/.env.example` - Worker configuration
 - `apps/web/.env.example` - Web app configuration
 - `apps/mobile/.env.example` - Mobile app configuration
 
@@ -185,9 +190,22 @@ pnpm dev              # Run all apps in development mode
 pnpm build            # Build all apps
 pnpm lint             # Lint all apps
 pnpm type-check       # Type check all apps
+pnpm test             # Run all tests
 pnpm format           # Format code with Prettier
 pnpm clean            # Clean build artifacts
 ```
+
+## CI/CD
+
+This project uses **GitHub Actions** for continuous integration. On every pull request, the following checks run automatically:
+
+1. **Install** - Install dependencies with pnpm
+2. **Lint** - ESLint checks across all packages
+3. **Type Check** - TypeScript compilation checks
+4. **Test** - Run all unit and integration tests
+5. **Build** - Build all apps and packages
+
+The CI workflow is defined in `.github/workflows/ci.yml`.
 
 ## IDE Setup
 

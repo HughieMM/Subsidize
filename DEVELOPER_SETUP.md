@@ -149,10 +149,10 @@ Each app has an `.env.example` file. Copy these to create your `.env` files:
 
 ```bash
 # API
-cp apps/api/.env.example apps/api/.env
+cp services/api/.env.example services/api/.env
 
 # Worker
-cp apps/worker/.env.example apps/worker/.env
+cp services/worker/.env.example services/worker/.env
 
 # Web
 cp apps/web/.env.example apps/web/.env
@@ -193,16 +193,16 @@ This runs all apps simultaneously using Turbo's parallel execution.
 **API Server:**
 ```bash
 pnpm dev:api
-# Or from apps/api directory
-cd apps/api && pnpm dev
+# Or from services/api directory
+cd services/api && pnpm dev
 ```
 The API will be available at `http://localhost:3001`
 
 **Worker:**
 ```bash
 pnpm dev:worker
-# Or from apps/worker directory
-cd apps/worker && pnpm dev
+# Or from services/worker directory
+cd services/worker && pnpm dev
 ```
 
 **Web App:**
@@ -291,7 +291,7 @@ Create run configurations for quick access to common commands:
 #### API Dev Server
 - **Name:** API Dev
 - **Type:** npm
-- **Package.json:** `<project-root>/apps/api/package.json`
+- **Package.json:** `<project-root>/services/api/package.json`
 - **Command:** run
 - **Scripts:** dev
 
@@ -312,7 +312,7 @@ Create run configurations for quick access to common commands:
 #### Worker Dev
 - **Name:** Worker Dev
 - **Type:** npm
-- **Package.json:** `<project-root>/apps/worker/package.json`
+- **Package.json:** `<project-root>/services/worker/package.json`
 - **Command:** run
 - **Scripts:** dev
 
@@ -381,7 +381,7 @@ When making native changes (like adding native modules), rebuild in Xcode or run
 
 3. (Optional) Run migrations when implemented:
    ```bash
-   cd apps/api
+   cd services/api
    pnpm migrate
    ```
 
