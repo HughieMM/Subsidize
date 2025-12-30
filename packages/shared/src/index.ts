@@ -16,6 +16,7 @@ export * from './adapters';
 // Utilities
 export * from './utils/currency';
 export * from './utils/date';
+export * from './utils/priceComparison';
 
 // Fixtures
 export * from './fixtures';

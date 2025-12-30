@@ -68,11 +68,24 @@ export const ApiProductDetailSchema = z.object({
   }),
   prices: z.array(ApiPriceInfoSchema),
   priceStats: z.object({
-    lowest: ApiPriceInfoSchema.nullable(),
-    highest: ApiPriceInfoSchema.nullable(),
-    average: z.number().nullable(),
+    min: z.number(),
+    max: z.number(),
+    median: z.number(),
+    average: z.number(),
+    range: z.number(),
     storeCount: z.number(),
-  }),
+  }).nullable(),
+  bestStore: z.object({
+    storeId: z.string(),
+    storeName: z.string(),
+    price: z.number(),
+    savings: z.number(),
+  }).nullable(),
+  priceRange: z.object({
+    min: z.number(),
+    max: z.number(),
+    formatted: z.string(),
+  }).nullable(),
 });
 
 export const ApiPriceHistoryEntrySchema = z.object({

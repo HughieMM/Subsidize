@@ -16,5 +16,14 @@ export type { PriceChipProps } from './components/PriceChip';
 export { ListRow } from './components/ListRow';
 export type { ListRowProps } from './components/ListRow';
 
+export { PriceRangeChip } from './components/PriceRangeChip';
+export type { PriceRangeChipProps } from './components/PriceRangeChip';
+
+export { BestStoreBadge } from './components/BestStoreBadge';
+export type { BestStoreBadgeProps } from './components/BestStoreBadge';
+
+export { BasketTotalsTable } from './components/BasketTotalsTable';
+export type { BasketTotalsTableProps, StoreTotal } from './components/BasketTotalsTable';
+
 // Theme
 export * from './theme';

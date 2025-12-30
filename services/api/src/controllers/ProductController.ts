@@ -1,5 +1,13 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
+import {
+  calculatePriceStats,
+  findBestStore,
+  getPriceRange,
+  calculateUnitPrice,
+  parseSize,
+  type PricePoint,
+} from '@subsidize/shared';
 
 export class ProductController {
   /**
@@ -144,29 +152,42 @@ export class ProductController {
       }
 
       // Get all current prices
-      const prices = product.storeProducts
+      const pricePoints: PricePoint[] = product.storeProducts
         .filter(sp => sp.priceObservations.length > 0)
-        .map(sp => ({
-          storeId: sp.storeId,
-          storeName: sp.store.name,
-          price: sp.priceObservations[0].price,
-          currency: sp.priceObservations[0].currency,
-          unitPrice: sp.priceObservations[0].unitPrice,
-          unitPriceUnit: sp.priceObservations[0].unitPriceUnit,
-          observedAt: sp.priceObservations[0].observedAt,
-        }));
+        .map(sp => {
+          const obs = sp.priceObservations[0];
 
-      // Calculate stats
-      const priceValues = prices.map(p => p.price);
-      const lowestPrice = prices.length > 0
-        ? prices.reduce((min, p) => (p.price < min.price ? p : min))
-        : null;
-      const highestPrice = prices.length > 0
-        ? prices.reduce((max, p) => (p.price > max.price ? p : max))
-        : null;
-      const averagePrice = priceValues.length > 0
-        ? priceValues.reduce((sum, p) => sum + p, 0) / priceValues.length
-        : null;
+          // Calculate unit price if not already in database
+          let unitPrice = obs.unitPrice;
+          let unitPriceUnit = obs.unitPriceUnit;
+
+          if (!unitPrice && product.sizeValue && product.sizeUnit) {
+            const calculated = calculateUnitPrice(
+              obs.price,
+              product.sizeValue,
+              product.sizeUnit
+            );
+            if (calculated) {
+              unitPrice = calculated.unitPrice;
+              unitPriceUnit = calculated.unitPriceUnit;
+            }
+          }
+
+          return {
+            storeId: sp.storeId,
+            storeName: sp.store.name,
+            price: obs.price,
+            currency: obs.currency,
+            unitPrice,
+            unitPriceUnit,
+            observedAt: obs.observedAt,
+          };
+        });
+
+      // Use comparison utilities
+      const stats = calculatePriceStats(pricePoints);
+      const bestStore = findBestStore(pricePoints);
+      const priceRange = getPriceRange(pricePoints);
 
       res.json({
         product: {
@@ -179,13 +200,10 @@ export class ProductController {
           createdAt: product.createdAt,
           updatedAt: product.updatedAt,
         },
-        prices,
-        priceStats: {
-          lowest: lowestPrice,
-          highest: highestPrice,
-          average: averagePrice,
-          storeCount: prices.length,
-        },
+        prices: pricePoints,
+        priceStats: stats,
+        bestStore,
+        priceRange,
       });
     } catch (error) {
       console.error('Error fetching product:', error);

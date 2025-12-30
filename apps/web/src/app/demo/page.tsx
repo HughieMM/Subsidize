@@ -18,6 +18,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { ProductCard } from '@/components/ProductCard';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { BasketTotalsTable, StoreTotal } from '@/components/BasketTotalsTable';
 import { apiClient, USE_MOCKS } from '@/lib/api';
 
 export default function DemoPage() {
@@ -61,11 +62,12 @@ export default function DemoPage() {
   const stores = USE_MOCKS ? mockStores : storesData?.stores || [];
 
   // Mock mode basket calculation
-  const mockBasketTotals = USE_MOCKS
+  const mockBasketTotals: StoreTotal[] = USE_MOCKS
     ? mockStores
         .map((store) => {
           let total = 0;
-          let itemCount = 0;
+          let itemsFound = 0;
+          let itemsMissing = 0;
 
           mockBasket.forEach((quantity, productId) => {
             const product = mockProducts.find((p) => p.id === productId);
@@ -77,30 +79,53 @@ export default function DemoPage() {
                     ? price.salePrice
                     : price.price;
                 total += itemPrice * quantity;
-                itemCount += quantity;
+                itemsFound += quantity;
+              } else {
+                itemsMissing += quantity;
               }
             }
           });
 
           return {
-            store,
+            storeId: store.id,
+            storeName: store.name,
             total,
-            itemCount,
+            itemsFound,
+            itemsMissing,
           };
         })
-        .filter((t) => t.itemCount > 0)
+        .filter((t) => t.itemsFound > 0)
     : [];
 
-  const mockBestStore =
-    mockBasketTotals.length > 0
-      ? mockBasketTotals.reduce((best, current) =>
-          current.total < best.total ? current : best
-        )
-      : null;
+  // Mark best store for mock mode
+  if (mockBasketTotals.length > 0) {
+    const bestMockStore = mockBasketTotals.reduce((best, current) =>
+      current.total < best.total ? current : best
+    );
+    const minTotal = bestMockStore.total;
+    mockBasketTotals.forEach((storeTotal) => {
+      storeTotal.isBest = storeTotal.total === minTotal;
+      storeTotal.savings = storeTotal.total > minTotal ? storeTotal.total - minTotal : 0;
+    });
+  }
+
+  const mockBestStore = mockBasketTotals.find((t) => t.isBest) || null;
 
   // API mode data
   const apiBasketItems = basketData?.basket?.items || [];
-  const apiComparisons = comparisonData?.storeComparisons || [];
+  const apiComparisons: StoreTotal[] =
+    comparisonData?.storeComparisons.map((comp) => ({
+      storeId: comp.storeId,
+      storeName: comp.storeName,
+      total: comp.total,
+      itemsFound: comp.availableItems,
+      itemsMissing: comp.totalItems - comp.availableItems,
+      isBest: comparisonData.bestStore?.storeId === comp.storeId,
+      savings:
+        comparisonData.bestStore && comp.storeId !== comparisonData.bestStore.storeId
+          ? comp.total - comparisonData.bestStore.total
+          : 0,
+    })) || [];
   const apiBestStore = comparisonData?.bestStore;
 
   // Combined basket count
@@ -221,93 +246,21 @@ export default function DemoPage() {
                 </Card>
               ) : (
                 <>
-                  {/* Store Totals */}
-                  <div className="space-y-3 mb-4">
-                    {USE_MOCKS
-                      ? mockBasketTotals.map(({ store, total, itemCount }) => (
-                          <Card
-                            key={store.id}
-                            className={
-                              mockBestStore?.store.id === store.id
-                                ? 'border-2 border-success'
-                                : ''
-                            }
-                          >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <h3 className="font-semibold">{store.name}</h3>
-                                <p className="text-sm text-text-secondary">
-                                  {itemCount} items
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-lg font-bold text-primary-600">
-                                  {formatPrice(total)}
-                                </p>
-                                {mockBestStore?.store.id === store.id && (
-                                  <p className="text-xs text-success font-medium">
-                                    Best Price!
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </Card>
-                        ))
-                      : apiComparisons.map((comp) => (
-                          <Card
-                            key={comp.storeId}
-                            className={
-                              apiBestStore?.storeId === comp.storeId
-                                ? 'border-2 border-success'
-                                : ''
-                            }
-                          >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <h3 className="font-semibold">
-                                  {comp.storeName}
-                                </h3>
-                                <p className="text-sm text-text-secondary">
-                                  {comp.availableItems} items
-                                </p>
-                                {!comp.hasAllProducts && (
-                                  <p className="text-xs text-orange-600">
-                                    Missing {comp.missingProducts.length}{' '}
-                                    product(s)
-                                  </p>
-                                )}
-                              </div>
-                              <div className="text-right">
-                                <p className="text-lg font-bold text-primary-600">
-                                  {formatPrice(comp.total)}
-                                </p>
-                                {apiBestStore?.storeId === comp.storeId && (
-                                  <p className="text-xs text-success font-medium">
-                                    Best Price!
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                  </div>
+                  {/* Store Totals Table */}
+                  <BasketTotalsTable
+                    totals={USE_MOCKS ? mockBasketTotals : apiComparisons}
+                    className="mb-4"
+                  />
 
                   {/* Best Store CTA */}
                   {(USE_MOCKS ? mockBestStore : apiBestStore) && (
                     <Card className="bg-success text-white">
                       <h3 className="font-bold mb-2">
                         💚 Shop at{' '}
-                        {USE_MOCKS
-                          ? mockBestStore?.store.name
-                          : apiBestStore?.storeName}
+                        {USE_MOCKS ? mockBestStore?.storeName : apiBestStore?.storeName}
                       </h3>
                       <p className="text-sm mb-3 opacity-90">
-                        {USE_MOCKS
-                          ? `Save ${formatPrice(
-                              Math.max(...mockBasketTotals.map((t) => t.total)) -
-                                mockBestStore!.total
-                            )} compared to the most expensive store`
-                          : `Best overall price for your basket`}
+                        Best overall price for your basket
                       </p>
                       <Button className="w-full bg-white text-success hover:bg-gray-100">
                         Start Shopping
