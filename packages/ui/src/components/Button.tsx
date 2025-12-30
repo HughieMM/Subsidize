@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import { colors } from '../theme';
 
 export interface ButtonProps {
   title: string;
@@ -53,7 +54,7 @@ export function Button({
       activeOpacity={0.7}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? '#007AFF' : '#FFFFFF'} />
+        <ActivityIndicator color={variant === 'outline' ? colors.primary[500] : colors.white} />
       ) : (
         <Text style={textStyles}>{title}</Text>
       )}
@@ -82,18 +83,18 @@ const styles = StyleSheet.create({
   },
   // Variant styles
   primaryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary[500],
   },
   secondaryButton: {
-    backgroundColor: '#5856D6',
+    backgroundColor: colors.secondary[500],
   },
   outlineButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: colors.primary[500],
   },
   disabledButton: {
-    backgroundColor: '#C7C7CC',
+    backgroundColor: colors.neutral[400],
   },
   // Text styles
   text: {
@@ -109,15 +110,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   primaryText: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   secondaryText: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   outlineText: {
-    color: '#007AFF',
+    color: colors.primary[500],
   },
   disabledText: {
-    color: '#8E8E93',
+    color: colors.text.tertiary,
   },
 });

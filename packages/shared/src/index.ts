@@ -7,3 +7,6 @@ export * from './types/order';
 // Utilities
 export * from './utils/currency';
 export * from './utils/date';
+
+// Fixtures
+export * from './fixtures';

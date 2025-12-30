@@ -25,7 +25,8 @@
     "react-native-screens": "~3.29.0",
     "@react-navigation/native": "^6.1.9",
     "@tanstack/react-query": "^5.17.9",
-    "axios": "^1.6.5"
+    "axios": "^1.6.5",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@subsidize/config": "workspace:*",
