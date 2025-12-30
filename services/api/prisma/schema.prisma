@@ -126,15 +126,19 @@ model Watchlist {
 model DeliveryOrder {
   id                 String   @id @default(cuid())
   userId             String?
-  basketSnapshotJson String   @db.Text // JSON snapshot of basket at time of order
-  status             String   @default("pending") // pending, confirmed, preparing, delivering, delivered, cancelled
-  feeBreakdownJson   String   @db.Text // JSON of fees (delivery, service, tax, etc)
-  addressJson        String   @db.Text // JSON of delivery address
+  basketSnapshotJson String   @db.Text // JSON snapshot of basket items + prices at order time
+  status             String   @default("created") // created, accepted, shopping, delivering, complete, cancelled
+  feeBreakdownJson   String   @db.Text // JSON: { deliveryFee, serviceFee, commissionPercent, subtotal, total }
+  deliveryAddress    String   @db.Text // Full delivery address
+  timeWindow         String? // Delivery time window preference
+  notes              String?  @db.Text // Customer notes
+  driverId           String? // Driver who accepted the order
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([driverId])
   @@index([status])
   @@index([createdAt])
 }

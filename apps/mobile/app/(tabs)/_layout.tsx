@@ -28,6 +28,12 @@ export default function TabsLayout() {
           title: 'Profile',
         }}
       />
+      <Tabs.Screen
+        name="driver"
+        options={{
+          title: 'Driver',
+        }}
+      />
     </Tabs>
   );
 }

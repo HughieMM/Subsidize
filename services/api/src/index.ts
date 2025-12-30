@@ -12,6 +12,7 @@ import { orderRoutes } from './routes/orders';
 import { basketsRouter } from './routes/baskets';
 import { watchlistRouter } from './routes/watchlist';
 import { adminRoutes } from './routes/admin';
+import { deliveryRoutes } from './routes/delivery';
 import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
@@ -63,6 +64,7 @@ app.use('/api/baskets', basketsRouter);
 app.use('/api/watchlist', watchlistRouter);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/delivery', deliveryRoutes);
 
 // Error handling
 app.use(errorHandler);
