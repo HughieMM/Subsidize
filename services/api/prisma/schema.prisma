@@ -1,0 +1,140 @@
+// Subsidize Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id               String         @id @default(cuid())
+  name             String
+  websiteUrl       String?
+  supportsDelivery Boolean        @default(false)
+  parishes         String[] // Bermuda parishes served
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  storeProducts    StoreProduct[]
+}
+
+model Product {
+  id             String         @id @default(cuid())
+  canonicalName  String // Normalized product name
+  brand          String?
+  sizeValue      Float?
+  sizeUnit       String? // oz, lb, kg, ml, l, etc
+  gtin           String? // Global Trade Item Number (barcode)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  storeProducts  StoreProduct[]
+  basketItems    BasketItem[]
+  watchlistItems Watchlist[]
+
+  @@index([canonicalName])
+  @@index([gtin])
+}
+
+model StoreProduct {
+  id                 String             @id @default(cuid())
+  storeId            String
+  productId          String? // Optional link to canonical product
+  storeSku           String // Store's internal SKU/identifier
+  sourceUrl          String? // URL where product was found
+  rawName            String // Product name as it appears in store
+  rawSize            String? // Size string as it appears in store
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  store              Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product            Product?           @relation(fields: [productId], references: [id], onDelete: SetNull)
+  priceObservations  PriceObservation[]
+
+  @@unique([storeId, storeSku])
+  @@index([storeId])
+  @@index([productId])
+}
+
+model PriceObservation {
+  id             String       @id @default(cuid())
+  storeProductId String
+  price          Float
+  currency       String       @default("BMD")
+  unitPrice      Float? // Price per unit (e.g., per lb)
+  unitPriceUnit  String? // Unit for unit price
+  observedAt     DateTime     @default(now())
+  sourceType     String // "scrape", "manual", "partner_api"
+  createdAt      DateTime     @default(now())
+  storeProduct   StoreProduct @relation(fields: [storeProductId], references: [id], onDelete: Cascade)
+
+  @@index([storeProductId])
+  @@index([observedAt])
+}
+
+model User {
+  id        String      @id @default(cuid())
+  email     String      @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  baskets   Basket[]
+  watchlist Watchlist[]
+  orders    DeliveryOrder[]
+}
+
+model Basket {
+  id        String       @id @default(cuid())
+  userId    String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items     BasketItem[]
+
+  @@index([userId])
+}
+
+model BasketItem {
+  id        String   @id @default(cuid())
+  basketId  String
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  basket    Basket   @relation(fields: [basketId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([basketId, productId])
+  @@index([basketId])
+  @@index([productId])
+}
+
+model Watchlist {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String
+  targetPrice Float? // Optional price alert threshold
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model DeliveryOrder {
+  id                 String   @id @default(cuid())
+  userId             String?
+  basketSnapshotJson String   @db.Text // JSON snapshot of basket at time of order
+  status             String   @default("pending") // pending, confirmed, preparing, delivering, delivered, cancelled
+  feeBreakdownJson   String   @db.Text // JSON of fees (delivery, service, tax, etc)
+  addressJson        String   @db.Text // JSON of delivery address
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
