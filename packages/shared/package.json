@@ -17,8 +17,12 @@
   "dependencies": {
     "zod": "^3.22.4"
   },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.17.0"
+  },
   "devDependencies": {
     "@subsidize/config": "workspace:*",
+    "@tanstack/react-query": "^5.17.9",
     "@types/node": "^20.10.6",
     "typescript": "^5.3.3",
     "vitest": "^1.1.1"

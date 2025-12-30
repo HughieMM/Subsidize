@@ -180,6 +180,92 @@ turbo build --filter=@subsidize/shared --filter=@subsidize/ui
 
 ## Running Applications
 
+### Running the Full Stack (Recommended)
+
+To run the complete Subsidize platform with API, database, and frontend:
+
+#### 1. Set up the database
+
+First, ensure PostgreSQL is running and set up the database:
+
+```bash
+# From repository root
+cd services/api
+
+# Copy environment file if you haven't already
+cp .env.example .env
+
+# Generate Prisma Client
+pnpm db:generate
+
+# Run database migrations
+pnpm db:migrate
+
+# Seed with sample data (3 stores, 10 products, prices)
+pnpm db:seed
+```
+
+You should see output confirming:
+- 3 stores created (MarketPlace, Lindo's, Supermart)
+- 10 products created
+- Store products and price observations created
+
+#### 2. Start the API server
+
+```bash
+# From services/api directory
+pnpm dev
+
+# Or from repository root
+pnpm --filter api dev
+```
+
+The API will start at `http://localhost:3001`. You should see:
+```
+🚀 API server running on http://localhost:3001
+📊 Health check available at http://localhost:3001/health
+📚 API Documentation: http://localhost:3001/api-docs
+```
+
+Visit `http://localhost:3001/api-docs` to explore the API documentation.
+
+#### 3. Start the web application
+
+In a new terminal:
+
+```bash
+# From repository root
+cd apps/web
+
+# Copy environment file if you haven't already
+cp .env.local.example .env.local
+
+# Edit .env.local to configure API connection (defaults should work)
+# NEXT_PUBLIC_API_URL=http://localhost:3001
+# NEXT_PUBLIC_USE_MOCKS=false
+
+# Start the web app
+pnpm dev
+```
+
+The web app will be available at `http://localhost:3000`.
+
+Visit `http://localhost:3000/demo` to see the price comparison demo with real API data!
+
+#### 4. Enable Mock Mode (Optional)
+
+If you want to run the frontend without the API:
+
+```bash
+# In apps/web/.env.local
+NEXT_PUBLIC_USE_MOCKS=true
+```
+
+This will use mock data instead of calling the real API. Useful for:
+- Frontend development without backend
+- Demos without database setup
+- Testing UI changes quickly
+
 ### Run all apps in development mode (parallel)
 
 ```bash
